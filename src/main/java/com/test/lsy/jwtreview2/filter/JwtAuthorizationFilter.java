@@ -62,11 +62,14 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             log.info("username :: {}", username);
 
             if(username != null) {
+                // db에서 사용자이름으로 조회한 값이 있으면 PrincipalDetauls객체 새로 만들어서 인자값으로 User객체를 넣어라
+                // 그리고 UsernamePasswordAuthenticationToken 객체 생성 할 때 principalDetauls객체를 넘겨라
+                // 스프링시큐리티의 세션에 저장
                 repository.findByUsername(username)
                         .map(user -> new PrincipalDetails(user))
-                        .ifPresent(principalDetails -> {
-                            log.info("principalDetails :: {}", principalDetails.getUsername());
-                            Authentication authentication = new UsernamePasswordAuthenticationToken(principalDetails, null, principalDetails.getAuthorities());
+                        .ifPresent(principalDetauls -> {
+                            log.info("principalDetails :: {}", principalDetauls.getUsername());
+                            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principalDetauls, null, principalDetauls.getAuthorities());
                             SecurityContextHolder.getContext().setAuthentication(authentication);
                         });
 

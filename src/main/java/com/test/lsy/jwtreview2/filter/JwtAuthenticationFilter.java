@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -24,6 +25,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -31,9 +33,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         log.info("로그인 요청왔음~~");
 
         try {
-            ObjectMapper om = new ObjectMapper();
-            User requestUser = om.readValue(request.getInputStream(), User.class);
-
+            User requestUser = objectMapper.readValue(request.getInputStream(), User.class);
             log.info("requestUser :: {}", requestUser);
 
             UsernamePasswordAuthenticationToken authenticationToken =
@@ -43,9 +43,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             return authenticated;
 
         } catch(IOException e) {
-            e.printStackTrace();
+            log.error("로그인 처리 중 오류 발생", e);
+            throw new BadCredentialsException("로그인 실패: 잘못된 자격 증명", e);
         }
-        return null;
     }
 
     @Override
